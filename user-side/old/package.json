@@ -1,5 +1,5 @@
 {
-  "name": "echoes-of-exclusion",
+  "name": "ftp-upload",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
@@ -7,7 +7,7 @@
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
-  "author": "Subet Matteo",
+  "author": "",
   "license": "ISC",
   "dependencies": {
     "basic-ftp": "^5.0.5",
