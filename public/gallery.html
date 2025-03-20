@@ -27,7 +27,7 @@
 
         async function fetchLatestEntries() {
             try {
-                const response = await fetch('http://localhost:3000/get-latest-folders');
+                const response = await fetch(`http://${window.location.hostname}:8081/get-latest-folders`);
                 const folders = await response.json();
                 
                 entries = folders.map(folder => ({

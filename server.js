@@ -11,8 +11,8 @@ const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fet
 require('dotenv').config();
 
 const app = express();
-const port = 3000;
-const wss = new WebSocket.Server({ port: 3001 });
+const port = 8080;
+const wss = new WebSocket.Server({ port: "8081" });
 
 app.use(cors());
 app.use(express.static('public'));
@@ -281,4 +281,4 @@ app.get('/get-latest-folders', (req, res) => {
     });
 });
 
-app.listen(port, () => console.log(`Server running at http://localhost:${port}`));
+app.listen(port, "0.0.0.0", () => console.log(`Server running at http://localhost:${port}`));

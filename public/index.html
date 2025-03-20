@@ -107,7 +107,7 @@
         const progressBar = document.getElementById("progressBar");
         const statusMessage = document.getElementById("statusMessage");
         const thankYouScreen = document.getElementById("thankYouScreen");
-        const socket = new WebSocket("ws://localhost:3001");
+        const socket = new WebSocket(`ws://${window.location.hostname}:8081`);
         
         imageInput.addEventListener("change", () => {
             if (imageInput.files.length > 0) {
@@ -144,6 +144,19 @@
                 statusMessage.textContent = "Upload failed. Please try again.";
             }
         });
+
+        socket.onopen = () => {
+            console.log("✅ WebSocket connected!");
+        };
+
+        socket.onerror = (error) => {
+            console.error("❌ WebSocket error:", error);
+        };
+
+        socket.onclose = (event) => {
+            console.warn("⚠️ WebSocket closed:", event);
+        };
+
         
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);
