@@ -3,6 +3,7 @@
 # dependencies
 /node_modules
 /generation
+/example_imgs
 /.pnp
 .pnp.js
 .env

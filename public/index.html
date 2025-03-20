@@ -108,7 +108,9 @@
         const statusMessage = document.getElementById("statusMessage");
         const thankYouScreen = document.getElementById("thankYouScreen");
         const socket = new WebSocket(`ws://${window.location.hostname}:8081`);
-        
+
+        let fakeProgress = 0;
+
         imageInput.addEventListener("change", () => {
             if (imageInput.files.length > 0) {
                 fileNameDisplay.textContent = `Selected file: ${imageInput.files[0].name}`;
@@ -116,26 +118,26 @@
                 uploadButton.disabled = false;
             }
         });
-        
+
         uploadButton.addEventListener("click", async () => {
             if (imageInput.files.length === 0) return;
-            
+
             uploadScreen.classList.add("hidden");
             progressScreen.classList.remove("hidden");
-            
-            let fakeProgress = 0;
+
+            // Start a simulated progress bar
             const progressInterval = setInterval(() => {
                 if (fakeProgress < 95) {
-                    fakeProgress += 0.05;
-                    progressBar.style.width = fakeProgress + "%";
+                    fakeProgress += 0.3;
+                    progressBar.style.width = `${fakeProgress}%`;
                 } else {
                     clearInterval(progressInterval);
                 }
-            }, 300);
-            
+            }, 400);
+
             const formData = new FormData();
             formData.append("image", imageInput.files[0]);
-            
+
             try {
                 const response = await fetch("/upload", { method: "POST", body: formData });
                 const data = await response.json();
@@ -157,12 +159,16 @@
             console.warn("⚠️ WebSocket closed:", event);
         };
 
-        
         socket.onmessage = function(event) {
             const data = JSON.parse(event.data);
-            progressBar.style.width = data.progress + "%";
-            statusMessage.textContent = data.message;
-            
+
+            // Update the progress bar only if the new value is greater
+            if (data.progress > fakeProgress) {
+                fakeProgress = data.progress
+                progressBar.style.width = `${data.progress}%`;
+                statusMessage.textContent = data.message;
+            }
+
             if (data.progress === 100) {
                 progressScreen.classList.add("hidden");
                 thankYouScreen.classList.remove("hidden");

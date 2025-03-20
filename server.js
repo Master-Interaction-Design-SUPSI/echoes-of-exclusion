@@ -83,7 +83,7 @@ async function generateDescription(imagePath, folderPath) {
     if (!process.env.REPLICATE_API_TOKEN) return console.error('Missing API token');
 
     try {
-        const input = { image: await readFile(imagePath), prompt: "Describe this image", max_tokens: 1024 };
+        const input = { image: await readFile(imagePath), prompt: "Describe this image with a short but precise description.", max_tokens: 200 };
         const prediction = await replicate.predictions.create({
             version: "19be067b589d0c46689ffa7cc3ff321447a441986a7694c01225973c2eafc874",
             input
