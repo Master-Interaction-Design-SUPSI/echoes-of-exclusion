@@ -253,18 +253,31 @@ async function generateAudio(folderPath) {
 app.get('/get-latest-folders', (req, res) => {
     const generatedPath = path.join(__dirname, 'public', 'generated');
     
-    fs.readdir(generatedPath, (err, folders) => {
+    fs.readdir(generatedPath, async (err, folders) => {
         if (err) {
             return res.status(500).json({ error: 'Unable to read generated folder' });
         }
         
+        // Filter folders that contain "audioGenerated.wav"
+        const latestFolders = [];
+        for (const folder of folders) {
+            const folderPath = path.join(generatedPath, folder);
+            if (fs.statSync(folderPath).isDirectory()) {
+                const audioFilePath = path.join(folderPath, 'audioGenerated.wav');
+                if (fs.existsSync(audioFilePath)) {
+                    latestFolders.push(folder);
+                }
+            }
+        }
+
         // Sort folders by timestamp (descending order) and get the latest images
-        const latestFolders = folders
+        const correctFolders = latestFolders
             .filter(folder => fs.statSync(path.join(generatedPath, folder)).isDirectory())
             .sort((a, b) => b.localeCompare(a))
-            .slice(0, 3); //Here change to retrieve as many images as you want
+            .slice(0, 3) //Here change to retrieve as many images as you want
+            .sort((a, b) => a.localeCompare(b));
 
-        res.json(latestFolders);
+        res.json(correctFolders);
     });
 });
 
