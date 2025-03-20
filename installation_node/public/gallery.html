@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generated Gallery</title>
+    <style>
+        body { margin: 0; padding: 0; background-color: black; overflow: hidden; display: flex; flex-direction: column; justify-content: center; align-items: center; height: 100vh; }
+        .gallery-container { display: flex; flex-direction: column; align-items: center; width: 95dvw; height: 95dvh; }
+        .image-pair { display: flex; justify-content: space-between; align-items: center; width: 100%; height: 100%; }
+        .image-pair img { width: 50%; height: 100%; object-fit: cover; }
+    </style>
+</head>
+<body>
+    <div class="gallery-container">
+        <div class="image-pair">
+            <img id="originalImage" src="" alt="Original Image">
+            <img id="generatedImage" src="" alt="Generated Image">
+        </div>
+    </div>
+
+    <script>
+        let index = 0;
+        let entries = [];
+        let audioPlayer = new Audio();
+        let firstInteraction = false;
+
+        async function fetchLatestEntries() {
+            try {
+                const response = await fetch('http://localhost:3000/get-latest-folders');
+                const folders = await response.json();
+                
+                entries = folders.map(folder => ({
+                    originalImage: `generated/${folder}/originalImage.webp`,
+                    generatedImage: `generated/${folder}/generatedImage.webp`,
+                    audio: `generated/${folder}/audioGenerated.wav`
+                }));
+                
+                if (entries.length > 0) {
+                    index = 0;
+                    displayEntry(entries[index]);
+                }
+            } catch (error) {
+                console.error("Error fetching entries:", error);
+            }
+        }
+
+        async function displayEntry(entry) {
+            document.getElementById("originalImage").src = entry.originalImage;
+            document.getElementById("generatedImage").src = entry.generatedImage;
+            
+            audioPlayer.src = entry.audio;
+            if (firstInteraction) {
+                audioPlayer.play();
+            }
+            
+            audioPlayer.onended = async () => {
+                setTimeout(async () => {
+                    index = (index + 1) % entries.length;
+                    if (index === 0) await fetchLatestEntries(); // Refetch after each full cycle
+                    displayEntry(entries[index]);
+                }, 2000);
+            };
+        }
+
+        document.addEventListener("keydown", (event) => {
+            if (event.key === "p" && !firstInteraction) {
+                firstInteraction = true;
+                audioPlayer.play();
+            }
+        });
+
+        fetchLatestEntries();
+    </script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Echoes of Exclusion</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: black;
+            color: white;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .container {
+            width: 90%;
+            max-width: 400px;
+        }
+        .hidden {
+            display: none;
+        }
+        button, .file-input-label {
+            display: block;
+            width: 100%;
+            padding: 15px;
+            margin-top: 20px;
+            margin-left: auto;
+            margin-right: auto;
+            font-size: 1.2em;
+            background-color: white;
+            color: black;
+            border: none;
+            text-align: center;
+            cursor: pointer;
+            opacity: 0.5;
+            border-radius: 5px; 
+        }
+        .file-input-label{
+            width: 60%;
+        }
+        button.active {
+            opacity: 1;
+        }
+        input[type="file"] {
+            display: none;
+        }
+        .progress-container {
+            width: 100%;
+            background-color: #333;
+            height: 20px;
+            margin-top: 20px;
+            position: relative;
+            border-radius: 10px;
+        }
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #4caf50;
+            border-radius: 10px;
+        }
+        #statusMessage {
+            margin-top: 10px;
+        }
+        .small-text {
+            font-size: 0.9em;
+            margin-top: 15px;
+            color: #ccc;
+        }
+    </style>
+</head>
+<body>
+    <div class="container" id="uploadScreen">
+        <h1>Echoes of Exclusion</h1>
+        <p>By sharing your image, you contribute to a collective narrative that evolves throughout the festival. Your uploaded photo, its AI-generated transformation, and descriptive text will be part of this experience.</p>
+        <label for="imageInput" class="file-input-label">Choose an Image</label>
+        <input type="file" id="imageInput" accept="image/*">
+        <p id="fileName" class="small-text"></p>
+        <button id="uploadButton" disabled>Upload Image</button>
+    </div>
+
+    <div class="container hidden" id="progressScreen">
+        <h2>Please keep this page open while your image is being processed...</h2>
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        <p id="statusMessage"></p>
+    </div>
+
+    <div class="container hidden" id="thankYouScreen">
+        <h1>Thank you for contributing!</h1>
+        <p>Your image has been successfully uploaded and will soon be displayed in the installation. This collective artwork evolves over time, reflecting diverse perspectives and stories.</p>
+        <p class="small-text">We encourage mindful participation—each generated image consumes energy, so please share thoughtfully. Your engagement matters.</p>
+    </div>
+
+    <script>
+        const imageInput = document.getElementById("imageInput");
+        const uploadButton = document.getElementById("uploadButton");
+        const fileNameDisplay = document.getElementById("fileName");
+        const uploadScreen = document.getElementById("uploadScreen");
+        const progressScreen = document.getElementById("progressScreen");
+        const progressBar = document.getElementById("progressBar");
+        const statusMessage = document.getElementById("statusMessage");
+        const thankYouScreen = document.getElementById("thankYouScreen");
+        const socket = new WebSocket("ws://localhost:3001");
+        
+        imageInput.addEventListener("change", () => {
+            if (imageInput.files.length > 0) {
+                fileNameDisplay.textContent = `Selected file: ${imageInput.files[0].name}`;
+                uploadButton.classList.add("active");
+                uploadButton.disabled = false;
+            }
+        });
+        
+        uploadButton.addEventListener("click", async () => {
+            if (imageInput.files.length === 0) return;
+            
+            uploadScreen.classList.add("hidden");
+            progressScreen.classList.remove("hidden");
+            
+            let fakeProgress = 0;
+            const progressInterval = setInterval(() => {
+                if (fakeProgress < 95) {
+                    fakeProgress += 0.05;
+                    progressBar.style.width = fakeProgress + "%";
+                } else {
+                    clearInterval(progressInterval);
+                }
+            }, 300);
+            
+            const formData = new FormData();
+            formData.append("image", imageInput.files[0]);
+            
+            try {
+                const response = await fetch("/upload", { method: "POST", body: formData });
+                const data = await response.json();
+                statusMessage.textContent = data.message;
+            } catch (error) {
+                statusMessage.textContent = "Upload failed. Please try again.";
+            }
+        });
+        
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            progressBar.style.width = data.progress + "%";
+            statusMessage.textContent = data.message;
+            
+            if (data.progress === 100) {
+                progressScreen.classList.add("hidden");
+                thankYouScreen.classList.remove("hidden");
+            }
+        };
+    </script>
+</body>
+</html>
